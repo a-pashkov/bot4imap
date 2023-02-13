@@ -109,7 +109,6 @@ func Start() {
 func startImap(conf *config) {
 
 	tg := getTelegram(conf)
-	tg.send("bot4imap started")
 
 	// Connect to server
 	c, err := client.DialTLS(conf.imapServer, nil)
