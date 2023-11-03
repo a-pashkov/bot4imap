@@ -89,6 +89,7 @@ func getTelegram(conf *config) (tg *telegram) {
 
 func (t *telegram) send(msg string) {
 	chmsg := tgbotapi.NewMessage(t.chatID, msg)
+    chmsg.ParseMode = "markdown"
 	_, err := t.bot.Send(chmsg)
 
 	if err != nil {
@@ -213,14 +214,10 @@ func messageToText(msg *imap.Message) (text string) {
 	}
 
 	header := mr.Header
-	date, err := header.Date()
-	if err == nil {
-		text += date.String() + "\n"
-	}
 
 	subject, err := header.Subject()
 	if err == nil && subject != "" {
-		text += subject + "\n"
+		text += "*" + subject + "*\n\n"
 	}
 
 	// Process each message's part
