@@ -217,7 +217,7 @@ func messageToText(msg *imap.Message) (text string) {
 
 	subject, err := header.Subject()
 	if err == nil && subject != "" {
-		text += "*" + subject + "*\n\n"
+		text += "*" + subject + "*\n"
 	}
 
 	// Process each message's part
