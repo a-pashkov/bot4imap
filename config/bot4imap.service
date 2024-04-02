@@ -1,0 +1,13 @@
+[Unit]
+Description=Bot4imap
+After=syslog.target network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/opt/bot4imap/config/env.list
+ExecStart=/opt/bot4imap/bot4imap
+User=bot4imap
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
