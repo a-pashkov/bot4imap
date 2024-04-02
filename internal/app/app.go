@@ -15,6 +15,8 @@ import (
 
 const (
 	emailCheckTime = 60 * time.Second
+	parseMode      = "MarkdownV2"
+	imapTimeout    = 120000000000 // 120 sec
 )
 
 //Types
@@ -89,7 +91,7 @@ func getTelegram(conf *config) (tg *telegram) {
 
 func (t *telegram) send(msg string) {
 	chmsg := tgbotapi.NewMessage(t.chatID, msg)
-    chmsg.ParseMode = "markdown"
+	chmsg.ParseMode = parseMode
 	_, err := t.bot.Send(chmsg)
 
 	if err != nil {
@@ -117,6 +119,8 @@ func startImap(conf *config) {
 		log.Fatal(err)
 	}
 	log.Println("Connected IMAP")
+
+	c.Timeout = imapTimeout
 
 	// Don't forget to logout
 	defer c.Logout()
@@ -178,7 +182,6 @@ func getNewMessages(tg *telegram, c *client.Client) {
 		}()
 
 		for msg := range messages {
-
 			text := messageToText(msg)
 
 			tg.send(text)
@@ -202,6 +205,7 @@ func getNewMessages(tg *telegram, c *client.Client) {
 
 func messageToText(msg *imap.Message) (text string) {
 	var section imap.BodySectionName
+	var body string
 	r := msg.GetBody(&section)
 	if r == nil {
 		log.Fatal("Server didn't returned message body")
@@ -217,7 +221,7 @@ func messageToText(msg *imap.Message) (text string) {
 
 	subject, err := header.Subject()
 	if err == nil && subject != "" {
-		text += "*" + subject + "*\n"
+		text = "*" + tgbotapi.EscapeText(parseMode, subject) + "*\n"
 	}
 
 	// Process each message's part
@@ -235,7 +239,7 @@ func messageToText(msg *imap.Message) (text string) {
 			b, _ := ioutil.ReadAll(p.Body)
 			//log.Printf("Got text: %v\n", string(b))
 			if string(b) != "" {
-				text += string(b) + "\n"
+				body += string(b) + "\n"
 			}
 		case *mail.AttachmentHeader:
 			// This is an attachment
@@ -243,6 +247,7 @@ func messageToText(msg *imap.Message) (text string) {
 			log.Printf("Got attachment: %v\n", filename)
 		}
 	}
+	text += tgbotapi.EscapeText(parseMode, body)
 	return
 }
 
